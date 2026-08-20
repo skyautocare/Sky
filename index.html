@@ -218,7 +218,25 @@ button{
 
 </div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC3YgodYF9W5lnenRGh6KxwIepcfVvZKHc",
+  authDomain: "skyautocare-7c26f.firebaseapp.com",
+  projectId: "skyautocare-7c26f",
+  storageBucket: "skyautocare-7c26f.firebasestorage.app",
+  messagingSenderId: "257651703409",
+  appId: "1:257651703409:web:10774239c1e9c29da9e5d0",
+  measurementId: "G-2R2V6XK61E"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
 
 let selectedService="";
 let selectedPrice=0;
@@ -235,11 +253,14 @@ document.getElementById("selected").innerHTML=
 
 }
 
-function book(){
+async function book(){
 
-let name=document.getElementById("name").value;
-let phone=document.getElementById("phone").value;
-let car=document.getElementById("car").value;
+let name=document.getElementById("name").value.trim();
+let phone=document.getElementById("phone").value.trim();
+let car=document.getElementById("car").value.trim();
+let date=document.getElementById("date").value;
+let time=document.getElementById("time").value;
+let notes=document.getElementById("notes").value.trim();
 
 if(selectedService==""){
 alert("من فضلك اختار الخدمة أولًا");
@@ -251,13 +272,49 @@ alert("من فضلك اكتب الاسم ورقم الموبايل");
 return;
 }
 
+try{
+
+await db.collection("bookings").add({
+
+name:name,
+phone:phone,
+car:car,
+service:selectedService,
+price:selectedPrice,
+date:date,
+time:time,
+notes:notes,
+status:"pending",
+createdAt:firebase.firestore.FieldValue.serverTimestamp()
+
+});
+
 alert(
-"تم تجهيز طلب الحجز بنجاح\n\n"+
+"تم تسجيل طلب الحجز بنجاح ✅\n\n"+
 "الاسم: "+name+
 "\nالسيارة: "+car+
 "\nالخدمة: "+selectedService+
-"\nالسعر: "+selectedPrice+" جنيه"
+"\nالسعر: "+selectedPrice+" جنيه"+
+"\nاليوم: "+date+
+"\nالساعة: "+time
 );
+
+document.getElementById("name").value="";
+document.getElementById("phone").value="";
+document.getElementById("car").value="";
+document.getElementById("date").value="";
+document.getElementById("notes").value="";
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حصل خطأ أثناء تسجيل الحجز.\n"+
+"تأكد من إعدادات Firestore ثم حاول مرة أخرى."
+);
+
+}
 
 }
 
